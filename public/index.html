@@ -74,7 +74,7 @@
           <h3>聊天</h3>
           <div id="chat-messages"></div>
           <div class="chat-input-row">
-            <input type="text" id="chat-input" placeholder="输入消息..." maxlength="200">
+            <input type="text" id="chat-input" placeholder="输入消息后点发送或回车" maxlength="200">
             <button type="button" id="btn-chat-send" class="btn small">发送</button>
           </div>
         </div>
@@ -108,7 +108,15 @@
             <button type="button" class="btn action-btn" data-action="fold">弃牌</button>
             <button type="button" class="btn action-btn" data-action="check">过牌</button>
             <button type="button" class="btn action-btn" data-action="call">跟注</button>
-            <input type="number" id="input-bet-amount" min="0" placeholder="加注额">
+            <label class="raise-row">加注
+              <select id="input-raise-multiplier" class="raise-multiplier">
+                <option value="2">2×大盲</option>
+                <option value="3">3×大盲</option>
+                <option value="4">4×大盲</option>
+                <option value="5">5×大盲</option>
+                <option value="10">10×大盲</option>
+              </select>
+            </label>
             <button type="button" class="btn action-btn" data-action="raise">加注</button>
             <button type="button" class="btn action-btn" data-action="allIn">All In</button>
           </div>
@@ -119,7 +127,7 @@
         <div id="game-chat-panel" class="game-chat-panel hidden">
           <div id="game-chat-messages"></div>
           <div class="chat-input-row">
-            <input type="text" id="game-chat-input" placeholder="输入消息..." maxlength="200">
+            <input type="text" id="game-chat-input" placeholder="输入消息后点发送或回车" maxlength="200">
             <button type="button" id="btn-game-chat-send" class="btn small">发送</button>
           </div>
         </div>

@@ -223,29 +223,38 @@ document.getElementById('btn-start-game').addEventListener('click', () => {
   });
 });
 
-// 聊天
+// 聊天（大厅和游戏内共用发送逻辑，确保都能用）
 function appendChatMessage(container, msg) {
-  const p = document.createElement('p');
+  if (!container) return;
+  var p = document.createElement('p');
   p.className = 'chat-msg';
-  p.innerHTML = '<span class="name">' + escapeHtml(msg.name) + '</span>: ' + escapeHtml(msg.text);
+  p.innerHTML = '<span class="name">' + escapeHtml(msg.name) + '</span>: ' + escapeHtml(msg.text || '');
   container.appendChild(p);
   container.scrollTop = container.scrollHeight;
 }
 function escapeHtml(s) {
-  const div = document.createElement('div');
+  var div = document.createElement('div');
   div.textContent = s;
   return div.innerHTML;
 }
 
-document.getElementById('btn-chat-send').addEventListener('click', sendLobbyChat);
-document.getElementById('chat-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') sendLobbyChat(); });
-function sendLobbyChat() {
-  const input = document.getElementById('chat-input');
-  const text = (input.value || '').trim();
-  if (!text || !currentRoomId) return;
-  socket.emit('chat', { roomId: currentRoomId, text });
+function sendChatFromInput(inputId) {
+  var input = document.getElementById(inputId);
+  if (!input) return;
+  var text = (input.value || '').trim();
+  if (!text) return;
+  if (!currentRoomId) {
+    alert('请先进入房间');
+    return;
+  }
+  socket.emit('chat', { roomId: currentRoomId, text: text });
   input.value = '';
 }
+
+var btnLobbyChat = document.getElementById('btn-chat-send');
+var inputLobbyChat = document.getElementById('chat-input');
+if (btnLobbyChat) btnLobbyChat.addEventListener('click', function (e) { e.preventDefault(); sendChatFromInput('chat-input'); });
+if (inputLobbyChat) inputLobbyChat.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); sendChatFromInput('chat-input'); } });
 
 // ---------- Socket 事件（含断线重连提示，确保中国玩家可知连接状态） ----------
 socket.on('connect', () => {
@@ -297,10 +306,10 @@ socket.on('yourTurn', (data) => {
   renderGame();
 });
 
-socket.on('chatMessage', (msg) => {
-  const lobbyChat = document.getElementById('chat-messages');
-  const gameChat = document.getElementById('game-chat-messages');
-  if (lobbyChat && lobbyChat.parentElement && !lobbyChat.parentElement.classList.contains('hidden')) appendChatMessage(lobbyChat, msg);
+socket.on('chatMessage', function (msg) {
+  var lobbyChat = document.getElementById('chat-messages');
+  var gameChat = document.getElementById('game-chat-messages');
+  if (lobbyChat) appendChatMessage(lobbyChat, msg);
   if (gameChat) appendChatMessage(gameChat, msg);
 });
 
@@ -382,35 +391,48 @@ function renderGame() {
     });
   }
 
-  const isMyTurn = currentRoom.currentPlayerIndex >= 0 && currentRoom.players[currentRoom.currentPlayerIndex] && currentRoom.players[currentRoom.currentPlayerIndex].id === mySocketId;
+  const currentPlayer = currentRoom.players[currentRoom.currentPlayerIndex];
+  const isMyTurn = currentRoom.currentPlayerIndex >= 0 && currentPlayer && currentPlayer.id === mySocketId;
   const actionHint = document.getElementById('action-hint');
   const actionBtns = document.querySelectorAll('.action-btn');
   const toCall = (currentRoom.currentBet || 0) - (me ? (me.betThisRound || 0) : 0);
+  const bigBlind = currentRoom.bigBlind || 20;
 
   if (isMyTurn && me && !me.folded && !me.allIn) {
-    actionHint.textContent = '轮到你行动。当前跟注额: ' + toCall + '，底池: ' + (currentRoom.pot || 0);
+    actionHint.textContent = '轮到你行动。跟注额: ' + toCall + '，底池: ' + (currentRoom.pot || 0) + '，大盲: ' + bigBlind;
     actionBtns.forEach(btn => {
       btn.disabled = false;
       const act = btn.dataset.action;
-      if (act === 'check' && toCall > 0) btn.disabled = true;
+      if (act === 'check') btn.disabled = toCall > 0;
       if (act === 'call') btn.textContent = toCall > 0 ? '跟注 ' + Math.min(toCall, me.chips) : '过牌';
     });
+    var raiseSel = document.getElementById('input-raise-multiplier');
+    if (raiseSel) raiseSel.disabled = false;
   } else {
-    actionHint.textContent = isMyTurn ? '请等待...' : (currentRoom.players[currentRoom.currentPlayerIndex] ? currentRoom.players[currentRoom.currentPlayerIndex].name + ' 行动中' : '');
+    actionHint.textContent = currentPlayer ? (currentPlayer.id === mySocketId ? '请操作…' : currentPlayer.name + ' 行动中') : '';
     actionBtns.forEach(btn => { btn.disabled = true; });
+    var raiseSel = document.getElementById('input-raise-multiplier');
+    if (raiseSel) raiseSel.disabled = true;
   }
 }
 
 document.querySelectorAll('.action-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const action = btn.dataset.action;
-    if (!currentRoomId || !action) return;
-    const me = currentRoom && currentRoom.players.find(p => p.id === mySocketId);
+  btn.addEventListener('click', function (e) {
+    e.preventDefault();
+    var action = this.getAttribute('data-action');
+    if (!currentRoomId || !action || !currentRoom) return;
+    var me = currentRoom.players.find(function (p) { return p.id === mySocketId; });
     if (!me || me.folded || me.allIn) return;
-    const amount = parseInt(document.getElementById('input-bet-amount').value, 10) || 0;
-    socket.emit('playerAction', { roomId: currentRoomId, action, amount }, (res) => {
+    var idx = currentRoom.currentPlayerIndex;
+    if (idx < 0 || !currentRoom.players[idx] || currentRoom.players[idx].id !== mySocketId) return;
+    var amount = 0;
+    if (action === 'raise') {
+      var mult = parseInt(document.getElementById('input-raise-multiplier').value, 10) || 2;
+      amount = mult * (currentRoom.bigBlind || 20);
+    }
+    socket.emit('playerAction', { roomId: currentRoomId, action: action, amount: amount }, function (res) {
       if (!res.ok) alert(res.message || '操作失败');
-      else if (currentRoom) renderGame();
+      else renderGame();
     });
   });
 });
@@ -422,19 +444,24 @@ document.getElementById('btn-leave-game').addEventListener('click', () => {
   showScreen('home');
 });
 
-document.getElementById('btn-toggle-chat').addEventListener('click', () => {
-  const panel = document.getElementById('game-chat-panel');
-  panel.classList.toggle('hidden');
+var btnToggleChat = document.getElementById('btn-toggle-chat');
+var gameChatPanel = document.getElementById('game-chat-panel');
+if (btnToggleChat && gameChatPanel) {
+  btnToggleChat.addEventListener('click', function () {
+    gameChatPanel.classList.toggle('hidden');
+  });
+}
+var btnGameChatSend = document.getElementById('btn-game-chat-send');
+var inputGameChat = document.getElementById('game-chat-input');
+if (btnGameChatSend) btnGameChatSend.addEventListener('click', function (e) {
+  e.preventDefault();
+  sendChatFromInput('game-chat-input');
 });
-document.getElementById('btn-game-chat-send').addEventListener('click', () => {
-  const input = document.getElementById('game-chat-input');
-  const text = (input.value || '').trim();
-  if (!text || !currentRoomId) return;
-  socket.emit('chat', { roomId: currentRoomId, text });
-  input.value = '';
-});
-document.getElementById('game-chat-input').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') document.getElementById('btn-game-chat-send').click();
+if (inputGameChat) inputGameChat.addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    sendChatFromInput('game-chat-input');
+  }
 });
 
 document.getElementById('btn-next-hand').addEventListener('click', () => {

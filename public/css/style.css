@@ -361,7 +361,8 @@ body {
   gap: 0.5rem;
   align-items: center;
 }
-.action-buttons input { width: 80px; padding: 0.4rem; border: 1px solid var(--gold); border-radius: 6px; }
+.action-buttons .raise-row { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.9rem; }
+.action-buttons .raise-multiplier { padding: 0.35rem 0.5rem; border: 1px solid var(--gold); border-radius: 6px; background: #fff; min-width: 5rem; }
 .action-btn { background: var(--red); color: var(--gold-light); }
 .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 

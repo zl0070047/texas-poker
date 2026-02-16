@@ -391,9 +391,10 @@ io.on('connection', (socket) => {
       if (p.chips <= 0) p.allIn = true;
     } else if (action === 'bet' || action === 'raise') {
       const minRaise = room.bigBlind;
-      const totalBet = room.currentBet + (amount >= minRaise ? amount : minRaise);
+      const raiseAmount = amount >= minRaise ? amount : minRaise;
+      const totalBet = room.currentBet + raiseAmount;
       const pay = Math.min(totalBet - p.betThisRound, p.chips);
-      if (pay < 0) return cb({ ok: false });
+      if (pay < 0) return cb({ ok: false, message: '加注金额无效' });
       p.chips -= pay;
       p.betThisRound += pay;
       p.totalBetThisHand += pay;
@@ -440,9 +441,11 @@ io.on('connection', (socket) => {
   socket.on('chat', (data) => {
     const room = rooms.get(data.roomId);
     if (!room) return;
+    const text = String(data.text || '').trim().slice(0, 200);
+    if (!text) return;
     const p = room.players.find(pp => pp.id === socket.id);
     const name = p ? p.name : '游客';
-    const msg = { id: Date.now(), name, text: String(data.text || '').slice(0, 200) };
+    const msg = { id: Date.now(), name, text };
     room.chatMessages.push(msg);
     io.to(room.id).emit('chatMessage', msg);
   });
