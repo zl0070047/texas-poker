@@ -1,0 +1,87 @@
+========================================
+  德州扑克春节版 — 开始部署（按顺序做）
+========================================
+
+项目里已经帮你做好了 Git 初始提交，按下面步骤即可部署到网上。
+
+----------------------------------------
+第一步：在 GitHub 上新建仓库
+----------------------------------------
+1. 打开浏览器，访问： https://github.com
+2. 登录你的 GitHub 账号（没有就先注册一个）
+3. 点击右上角头像旁的 【+】→ 【New repository】
+4. 填写：
+   - Repository name：填一个英文名，例如  texas-poker
+   - 选择 Public
+   - 不要勾选 "Add a README file"
+5. 点击 【Create repository】
+6. 创建成功后，页面上会有一个地址，类似：
+   https://github.com/你的用户名/texas-poker
+   记下「你的用户名」和「texas-poker」（或你起的仓库名）
+
+----------------------------------------
+第二步：在终端里把本机代码推送到 GitHub
+----------------------------------------
+1. 打开「终端」（Mac：启动台里搜「终端」）
+2. 复制下面这一整行（把 你的用户名 和 仓库名 换成你在第一步里记的）：
+
+   cd "/Users/zhulei/Desktop/AI CODE/德普春节版" && git remote add origin https://github.com/你的用户名/仓库名.git
+
+   例如你的用户是 zhangsan，仓库名是 texas-poker，就改成：
+   cd "/Users/zhulei/Desktop/AI CODE/德普春节版" && git remote add origin https://github.com/zhangsan/texas-poker.git
+
+3. 粘贴到终端，按回车
+4. 再复制下面这一行（同样把 你的用户名 和 仓库名 换掉）：
+
+   git push -u origin main
+
+5. 粘贴到终端，按回车
+   - 若提示要登录：按提示用浏览器或密码/Token 登录 GitHub
+   - 若提示 "Support for password authentication was removed"：需要到 GitHub 网站 → Settings → Developer settings → Personal access tokens 新建一个 Token，用 Token 当密码
+
+推送成功后，在 GitHub 网页上刷新，就能看到项目代码了。
+
+----------------------------------------
+第三步：在 Render 上部署
+----------------------------------------
+1. 打开： https://render.com
+2. 点击 【Get Started】 或 【Log in】，用 GitHub 账号登录
+3. 登录后点击 【New】 → 【Web Service】
+4. 在 "Connect a repository" 里找到你刚推送的仓库（如 texas-poker），点击 【Connect】
+5. 按下面填写（一般会自动填好）：
+   - Name：texas-poker（或任意英文名）
+   - Region：选 Singapore 或离你近的
+   - Branch：main
+   - Runtime：Node
+   - Build Command：npm install
+   - Start Command：npm start
+   - Instance Type：选 Free
+6. 点击 【Create Web Service】
+7. 等待几分钟，直到页面顶部出现 "Live" 绿色字样
+
+----------------------------------------
+第四步：拿到你的游戏链接
+----------------------------------------
+在 Render 该服务的页面顶部，会显示你的网站地址，类似：
+   https://texas-poker-xxxx.onrender.com
+
+这就是你的「德州扑克春节版」在线地址。
+复制这个链接，用浏览器打开即可玩；把链接发给朋友，他们也能用同一链接加入房间一起玩。
+
+----------------------------------------
+以后更新了代码怎么重新部署？
+----------------------------------------
+在本机项目目录执行：
+   git add .
+   git commit -m "更新说明"
+   git push
+
+Render 会自动检测到 GitHub 更新并重新部署（一般 1～2 分钟）。
+
+========================================
+遇到问题？
+- 终端里报错：把完整报错复制下来，发给懂的人或搜索
+- GitHub 推送失败：检查用户名、仓库名、网络和登录方式（Token）
+- Render 部署失败：看 Render 页面的 Logs 里的红色报错
+- 详细说明见项目里的 DEPLOY.md
+========================================
