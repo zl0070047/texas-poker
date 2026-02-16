@@ -1,0 +1,17 @@
+{
+  "name": "texas-holdem-spring-festival",
+  "version": "1.0.0",
+  "description": "线上德州扑克春节版 - 支持4-10人在线、房间邀请、大小盲设定、局局记录、自定义名字与文字聊天",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["poker", "texas-holdem", "spring-festival", "multiplayer"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2"
+  }
+}

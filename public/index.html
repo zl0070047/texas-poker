@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>德州扑克 · 春节版</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- 首页：创建 / 加入房间 -->
+    <section id="screen-home" class="screen active">
+      <div class="festival-bg"></div>
+      <div class="content">
+        <h1 class="title">
+          <span class="lantern">🏮</span> 德州扑克 · 春节版 <span class="lantern">🏮</span>
+        </h1>
+        <p class="subtitle">支持 4–10 人在线 · 房间邀请 · 局局记录 · 文字聊天</p>
+        <p class="subtitle-hint">国内玩家建议将游戏部署在<strong>国内服务器</strong>（如阿里云、腾讯云），访问更稳定，详见部署说明。</p>
+        <div class="card home-card">
+          <div class="tabs">
+            <button type="button" class="tab active" data-tab="create">创建房间</button>
+            <button type="button" class="tab" data-tab="join">加入房间</button>
+          </div>
+          <div id="panel-create" class="panel active">
+            <label>玩家人数 (4–10)</label>
+            <input type="number" id="input-maxPlayers" min="4" max="10" value="6">
+            <label>小盲金额</label>
+            <input type="number" id="input-smallBlind" min="1" value="10">
+            <label>大盲金额</label>
+            <input type="number" id="input-bigBlind" min="1" value="20">
+            <label>你的昵称</label>
+            <input type="text" id="input-create-name" placeholder="房主" maxlength="20">
+            <button type="button" id="btn-create" class="btn primary">创建房间</button>
+          </div>
+          <div id="panel-join" class="panel">
+            <label>房间号码 (6 位)</label>
+            <input type="text" id="input-roomId" placeholder="输入 6 位房间号" maxlength="6" pattern="[0-9]*">
+            <label>你的昵称</label>
+            <input type="text" id="input-join-name" placeholder="玩家昵称" maxlength="20">
+            <button type="button" id="btn-join" class="btn primary">加入房间</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 大厅：等待玩家、设置、开始、分享、聊天、局记录 -->
+    <section id="screen-lobby" class="screen">
+      <div class="festival-bg"></div>
+      <div class="content lobby-content">
+        <header class="lobby-header">
+          <h2>房间 <span id="lobby-roomId"></span></h2>
+          <div class="lobby-actions">
+            <button type="button" id="btn-copy-room" class="btn small">复制房间号</button>
+            <button type="button" id="btn-leave-lobby" class="btn small outline">离开房间</button>
+          </div>
+        </header>
+        <div class="lobby-settings">
+          <span>人数 <strong id="lobby-players-count">0</strong> / <strong id="lobby-max-players">6</strong></span>
+          <span>小盲 <strong id="lobby-sb">10</strong> · 大盲 <strong id="lobby-bb">20</strong></span>
+        </div>
+        <div class="card">
+          <h3>玩家列表</h3>
+          <ul id="lobby-player-list"></ul>
+          <div class="my-name-row">
+            <label>我的昵称</label>
+            <input type="text" id="lobby-my-name" maxlength="20">
+            <button type="button" id="btn-set-name" class="btn small">保存</button>
+          </div>
+          <button type="button" id="btn-start-game" class="btn primary" disabled>开始游戏</button>
+          <p class="hint">房主可点击「开始游戏」，至少 2 人即可开始</p>
+        </div>
+        <div class="card chat-card">
+          <h3>聊天</h3>
+          <div id="chat-messages"></div>
+          <div class="chat-input-row">
+            <input type="text" id="chat-input" placeholder="输入消息..." maxlength="200">
+            <button type="button" id="btn-chat-send" class="btn small">发送</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3>本房间对局记录</h3>
+          <div id="lobby-hand-history"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 游戏界面 -->
+    <section id="screen-game" class="screen">
+      <div class="festival-bg"></div>
+      <div class="game-layout">
+        <header class="game-header">
+          <span>房间 <span id="game-roomId"></span></span>
+          <span>底池 <strong id="game-pot">0</strong></span>
+          <button type="button" id="btn-leave-game" class="btn small outline">离开</button>
+        </header>
+        <div class="game-table">
+          <div id="game-community-cards" class="community-cards"></div>
+          <div id="game-players" class="players-ring"></div>
+        </div>
+        <div id="between-hands-panel" class="between-hands-panel hidden">
+          <p>本局已结束，可查看下方对局记录。</p>
+          <button type="button" id="btn-next-hand" class="btn primary">下一局</button>
+        </div>
+        <div class="game-actions" id="game-actions">
+          <p class="action-hint" id="action-hint"></p>
+          <div class="action-buttons">
+            <button type="button" class="btn action-btn" data-action="fold">弃牌</button>
+            <button type="button" class="btn action-btn" data-action="check">过牌</button>
+            <button type="button" class="btn action-btn" data-action="call">跟注</button>
+            <input type="number" id="input-bet-amount" min="0" placeholder="加注额">
+            <button type="button" class="btn action-btn" data-action="raise">加注</button>
+            <button type="button" class="btn action-btn" data-action="allIn">All In</button>
+          </div>
+        </div>
+        <div class="game-chat-toggle">
+          <button type="button" id="btn-toggle-chat" class="btn small">聊天</button>
+        </div>
+        <div id="game-chat-panel" class="game-chat-panel hidden">
+          <div id="game-chat-messages"></div>
+          <div class="chat-input-row">
+            <input type="text" id="game-chat-input" placeholder="输入消息..." maxlength="200">
+            <button type="button" id="btn-game-chat-send" class="btn small">发送</button>
+          </div>
+        </div>
+        <div class="card game-hand-history">
+          <h3>本房间对局记录</h3>
+          <div id="game-hand-history-list"></div>
+        </div>
+        <div id="hand-result-modal" class="modal hidden">
+          <div class="modal-content">
+            <h3>本局结果</h3>
+            <div id="hand-result-body"></div>
+            <button type="button" id="btn-close-hand-result" class="btn primary">确定</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
